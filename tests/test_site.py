@@ -7,7 +7,6 @@ import re
 import struct
 import unittest
 import xml.etree.ElementTree as ET
-from datetime import date
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -15,7 +14,7 @@ from urllib.parse import parse_qs, urlparse
 ROOT = Path(__file__).resolve().parent.parent
 PHONE_HREF = "tel:+33781631578"
 EMAIL = "simonlaugueux@proton.me"
-SECTIONS = ["accueil", "univers", "formules", "dates", "contact"]
+SECTIONS = ["accueil", "univers", "contact"]  # « formules » est masquée (commentée)
 VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input",
         "link", "meta", "source", "track", "wbr"}
 
@@ -172,34 +171,10 @@ class TestStructure(unittest.TestCase):
         self.assertTrue((ROOT / ".nojekyll").is_file())
 
 
-JOURS = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
-MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet",
-        "août", "septembre", "octobre", "novembre", "décembre"]
-
-
 def page_depuis(html):
     builder = TreeBuilder()
     builder.feed(html)
     return builder.root
-
-
-def erreurs_dates(page):
-    """Liste des dates dont le texte affiché ne correspond pas à l'attribut datetime."""
-    liste = page.find("ul", cls="dates-liste")
-    erreurs = []
-    for li in (liste.find_all("li", cls="date") if liste else []):
-        t = li.find("time")
-        jour = date.fromisoformat(t.attrs["datetime"])
-        attendu = f"{JOURS[jour.weekday()]} {jour.day} {MOIS[jour.month - 1]} {jour.year}"
-        if t.text().lower() != attendu:
-            erreurs.append(f"{t.attrs['datetime']} : « {t.text()} » au lieu de « {attendu} »")
-        if not (li.find(cls="date-lieu") and li.find(cls="date-lieu").text()):
-            erreurs.append(f"{t.attrs['datetime']} : lieu manquant")
-        if not (li.find(cls="date-theme") and li.find(cls="date-theme").text()):
-            erreurs.append(f"{t.attrs['datetime']} : thème manquant")
-    return erreurs
-
-
 def mailto_parts(href):
     parsed = urlparse(href)
     return parsed.path, {k: v[0] for k, v in parse_qs(parsed.query).items()}
@@ -222,7 +197,7 @@ class TestContenu(unittest.TestCase):
 
     def test_mailto_encodes_et_avec_objet(self):
         mails = self.liens("mailto:")
-        self.assertGreaterEqual(len(mails), 6)
+        self.assertGreaterEqual(len(mails), 4)
         for a in mails:
             href = a.attrs["href"]
             self.assertIsNone(re.search(r"\s", href), f"espace ou retour non encodé : {href}")
@@ -248,38 +223,54 @@ class TestContenu(unittest.TestCase):
         contact = self.page.find("section", id="contact").text()
         self.assertIn("07 81 63 15 78", contact)
         self.assertIn(EMAIL, contact)
-        self.assertIn("Cahors, le Lot et alentours", contact)
+        self.assertIsNone(self.page.find("p", cls="zone"), "zone de déplacement pas encore décidée")
+        html = (ROOT / "index.html").read_text(encoding="utf-8")
+        self.assertRegex(html, r'<!--[^>]*<p class="zone">Je me déplace à Cahors, dans le Lot et ses alentours\.</p>\s*-->')
 
-    def test_trois_formules_completes(self):
-        formules = self.page.find("section", id="formules").find_all("article", cls="formule")
+    def formules_commentees(self):
+        """Page reconstruite à partir de la section formules laissée en commentaire."""
+        html = (ROOT / "index.html").read_text(encoding="utf-8")
+        bloc = re.search(r"<!-- =+ DÉBUT SECTION FORMULES MASQUÉE.*?-->\s*<!--(.*?)-->\s*<!-- =+ FIN SECTION FORMULES MASQUÉE", html, re.S)
+        self.assertIsNotNone(bloc, "section formules commentée introuvable")
+        return page_depuis(bloc.group(1))
+
+    def test_formules_masquees(self):
+        self.assertIsNone(self.page.find("section", id="formules"))
+        self.assertIsNone(self.page.find("aside", cls="encart-touristes"))
+        hrefs = {a.attrs.get("href") for a in self.page.find_all("a")}
+        self.assertNotIn("#formules", hrefs)
+        html = (ROOT / "index.html").read_text(encoding="utf-8")
+        self.assertRegex(html, r'<!--\s*<li><a href="#formules">Formules</a></li>\s*-->')
+
+    def test_commentaires_html_bien_formes(self):
+        html = (ROOT / "index.html").read_text(encoding="utf-8")
+        for m in re.finditer(r"<!--(.*?)-->", html, re.S):
+            self.assertNotIn("--", m.group(1), f"« -- » dans un commentaire : {m.group(1)[:60]}")
+            self.assertNotIn("<!--", m.group(1))
+        self.assertNotIn("SECTION FORMULES", self.page.find("body").text())
+
+    def test_formules_commentees_restent_pretes(self):
+        section = self.formules_commentees().find("section", id="formules")
+        self.assertIsNotNone(section)
+        formules = section.find_all("article", cls="formule")
         titres = [f.find("h3").text() for f in formules]
         self.assertEqual(titres, ["Particuliers & amis", "Entreprises & CE", "Événements privés"])
         for f in formules:
-            self.assertIn("à partir de", f.find("p", cls="prix").text())
+            prix = f.find("p", cls="prix").text()
+            self.assertIn("à partir de XX €", prix)
+            self.assertNotRegex(prix, r"\d", "tarif chiffré alors qu'il n'est pas décidé")
             self.assertEqual(len(self.liens("mailto:", f)), 1)
-
-    def test_encart_touristes(self):
-        encart = self.page.find("aside", cls="encart-touristes")
-        self.assertIsNotNone(encart)
+        self.assertIn("Tarifs communiqués prochainement", section.text())
+        encart = section.find("aside", cls="encart-touristes")
         self.assertIn("De passage dans le Lot", encart.text())
         self.assertEqual(len(self.liens(PHONE_HREF, encart)), 1)
 
-    def test_dates_coherentes(self):
-        self.assertEqual(erreurs_dates(self.page), [])
-
-    def test_verif_dates_detecte_mauvais_mois(self):
-        page = page_depuis('<ul class="dates-liste"><li class="date">'
-                           '<time datetime="2026-10-17">Samedi 17 novembre 2026</time>'
-                           '<span class="date-lieu">Cahors</span><span class="date-theme">X</span></li></ul>')
-        self.assertEqual(len(erreurs_dates(page)), 1)
-
-    def test_verif_dates_accepte_aucune_date(self):
-        self.assertEqual(erreurs_dates(page_depuis('<p class="dates-repli">Organisons la vôtre.</p>')), [])
-
-    def test_repli_si_aucune_date(self):
-        repli = self.page.find("p", cls="dates-repli")
-        self.assertIn("Organisons la vôtre", repli.text())
-        self.assertTrue(repli.find("a").attrs["href"].startswith("mailto:"))
+    def test_section_dates_supprimee(self):
+        self.assertIsNone(self.page.find(id="dates"))
+        self.assertNotIn("#dates", {a.attrs.get("href") for a in self.page.find_all("a")})
+        html = (ROOT / "index.html").read_text(encoding="utf-8")
+        self.assertNotIn("dates-liste", html)
+        self.assertNotIn("Prochaines dates", html)
 
     def test_barre_contact_mobile(self):
         barre = self.page.find("nav", cls="barre-contact")
@@ -289,8 +280,25 @@ class TestContenu(unittest.TestCase):
         self.assertEqual(hrefs[0], PHONE_HREF)
         self.assertTrue(hrefs[1].startswith("mailto:"))
 
-    def test_tarifs_signales_indicatifs(self):
-        self.assertIn("Tarifs indicatifs", self.page.find("section", id="formules").text())
+    def test_annonce_en_haut_de_page(self):
+        main = self.page.find("main")
+        premier = next(c for c in main.content if isinstance(c, Element))
+        self.assertEqual((premier.tag, premier.attrs.get("class")), ("aside", "annonce"))
+        self.assertEqual(premier.attrs.get("aria-label"), "Annonce")
+        texte = premier.text()
+        for extrait in ("Bonjour à tous, le site sera prêt courant octobre.",
+                        "carte des vins", "réserver une dégustation", "À bientôt."):
+            self.assertIn(extrait, texte)
+        self.assertIn(EMAIL, texte)
+        self.assertEqual(len(self.liens("mailto:", premier)), 1)
+        self.assertEqual(len(self.liens(PHONE_HREF, premier)), 1)
+
+    def test_barriere_de_chantier_au_dessus_de_l_annonce(self):
+        annonce = self.page.find("aside", cls="annonce")
+        premier = next(el for el in annonce.iter() if el.tag in ("img", "p"))
+        self.assertEqual(premier.tag, "img", "la barrière doit précéder le texte")
+        self.assertEqual(premier.attrs.get("src"), "assets/img/barriere.svg")
+        self.assertEqual(premier.attrs.get("alt"), "")
 
 CSS = ROOT / "assets" / "css" / "style.css"
 PALETTE = {
@@ -301,7 +309,7 @@ PALETTE = {
 PAIRES = [
     ("chene", "parchemin"), ("chene", "camel"), ("chene", "ocre"),
     ("parchemin", "chene"), ("parchemin", "ocre-fonce"), ("parchemin", "malbec"),
-    ("malbec", "parchemin"), ("malbec", "camel"),
+    ("malbec", "parchemin"), ("malbec", "camel"), ("camel", "chene"),
 ]
 
 
@@ -413,6 +421,14 @@ class TestStyles(unittest.TestCase):
         self.assertRegex(impression, r"\.js \.reveal\s*\{[^}]*transition:\s*none")
         self.assertRegex(impression, r"\.barre-contact\s*\{[^}]*display:\s*none")
 
+    def test_annonce_en_gros_caracteres(self):
+        regle = re.search(r"(^|\})\s*\.annonce\s*\{([^}]*)\}", self.css).group(2)
+        taille = float(re.search(r"font-size:\s*clamp\(([\d.]+)rem", regle).group(1))
+        self.assertGreaterEqual(taille, 1.25, "annonce : au moins 20 px même sur mobile")
+
+    def test_focus_visible_sur_l_annonce(self):
+        self.assertRegex(self.css, r"\.annonce :focus-visible\s*\{[^}]*outline-color:\s*var\(--camel\)")
+
     def test_focus_visible_sur_la_barre_mobile(self):
         self.assertRegex(self.css, r"\.barre-contact :focus-visible\s*\{[^}]*outline-color:\s*var\(--camel\)")
 
@@ -451,7 +467,7 @@ class TestScript(unittest.TestCase):
             self.assertEqual("reveal" in classes, attendu, section.attrs["id"])
 
 IMG = ROOT / "assets" / "img"
-SVG_ATTENDUS = {"barrique", "verre", "grappe", "carafe", "bois", "douelles", "favicon"}
+SVG_ATTENDUS = {"barrique", "verre", "grappe", "carafe", "bois", "douelles", "favicon", "barriere"}
 
 
 def refs_locales(page):

@@ -44,14 +44,25 @@
       </button>
       <ul class="nav-liste" id="menu">
         <li><a href="#univers">L'univers</a></li>
-        <li><a href="#formules">Formules</a></li>
-        <li><a href="#dates">Dates</a></li>
+        <!-- <li><a href="#formules">Formules</a></li> -->
         <li><a href="#contact">Contact</a></li>
       </ul>
     </nav>
   </header>
 
   <main id="contenu">
+    <aside class="annonce" aria-label="Annonce">
+      <div class="conteneur">
+        <img class="annonce-barriere" src="assets/img/barriere.svg" alt="" width="160" height="96">
+        <p>Bonjour à tous, le site sera prêt courant octobre. Si vous souhaitez connaitre la carte des vins ou réserver une dégustation, n'hésitez pas à me contacter par mail ou téléphone.</p>
+        <p class="annonce-contact">
+          <a href="mailto:simonlaugueux@proton.me?subject=Carte%20des%20vins%20%2F%20d%C3%A9gustation">simonlaugueux@proton.me</a>
+          <a href="tel:+33781631578">07&nbsp;81&nbsp;63&nbsp;15&nbsp;78</a>
+        </p>
+        <p>À bientôt.</p>
+      </div>
+    </aside>
+
     <section id="accueil" class="hero" aria-labelledby="titre-accueil">
       <div class="conteneur hero-contenu">
         <p class="hero-surtitre">Cahors &amp; le Lot</p>
@@ -90,11 +101,19 @@
       </div>
     </section>
 
+    <!-- ===== DÉBUT SECTION FORMULES MASQUÉE (tarifs pas encore décidés) =====
+         Pour réafficher les formules :
+           1. supprimer la ligne qui ouvre le commentaire juste en dessous,
+              et la ligne qui le ferme juste avant « FIN SECTION » ;
+           2. dans le menu en haut du fichier, décommenter le lien « Formules » ;
+           3. remplacer les « XX » par les vrais tarifs ;
+           4. dans tests/test_site.py, remettre "formules" dans SECTIONS et adapter les tests des formules. -->
+    <!--
     <section id="formules" class="section section-camel reveal" aria-labelledby="titre-formules">
       <div class="conteneur">
         <div class="separateur" aria-hidden="true"></div>
         <h2 id="titre-formules">Les formules</h2>
-        <p class="intro">Chaque dégustation s'adapte à votre groupe, à votre lieu et à vos envies. Tarifs indicatifs, devis sur demande.</p>
+        <p class="intro">Chaque dégustation s'adapte à votre groupe, à votre lieu et à vos envies. Tarifs communiqués prochainement, devis sur demande.</p>
         <div class="formules">
           <article class="formule">
             <h3>Particuliers &amp; amis</h3>
@@ -103,7 +122,7 @@
               <li>Durée&nbsp;: environ 2&nbsp;h</li>
               <li>À partir de 6 personnes</li>
             </ul>
-            <p class="prix">à partir de 35&nbsp;€ / pers.</p>
+            <p class="prix">à partir de XX&nbsp;€ / pers.</p>
             <a class="bouton bouton-secondaire" href="mailto:simonlaugueux@proton.me?subject=D%C3%A9gustation%20entre%20amis">Demander une date</a>
           </article>
           <article class="formule">
@@ -113,7 +132,7 @@
               <li>Durée&nbsp;: 1&nbsp;h&nbsp;30 à 2&nbsp;h</li>
               <li>De 10 à 50 personnes</li>
             </ul>
-            <p class="prix">à partir de 30&nbsp;€ / pers.</p>
+            <p class="prix">à partir de XX&nbsp;€ / pers.</p>
             <a class="bouton bouton-secondaire" href="mailto:simonlaugueux@proton.me?subject=D%C3%A9gustation%20entreprise%20/%20CE">Demander un devis</a>
           </article>
           <article class="formule">
@@ -123,7 +142,7 @@
               <li>Durée&nbsp;: sur mesure</li>
               <li>Devis personnalisé</li>
             </ul>
-            <p class="prix">à partir de 300&nbsp;€ la prestation</p>
+            <p class="prix">à partir de XX&nbsp;€ la prestation</p>
             <a class="bouton bouton-secondaire" href="mailto:simonlaugueux@proton.me?subject=D%C3%A9gustation%20%C3%A9v%C3%A9nement%20priv%C3%A9">Parlons de votre événement</a>
           </article>
         </div>
@@ -138,31 +157,8 @@
         </aside>
       </div>
     </section>
-
-    <section id="dates" class="section reveal" aria-labelledby="titre-dates">
-      <div class="conteneur">
-        <div class="separateur" aria-hidden="true"></div>
-        <h2 id="titre-dates">Prochaines dates</h2>
-        <ul class="dates-liste">
-          <li class="date">
-            <time datetime="2026-10-17">Samedi 17 octobre 2026</time>
-            <span class="date-lieu">Cahors</span>
-            <span class="date-theme">Le malbec dans tous ses états</span>
-          </li>
-          <li class="date">
-            <time datetime="2026-11-14">Samedi 14 novembre 2026</time>
-            <span class="date-lieu">Luzech</span>
-            <span class="date-theme">Spiritueux et fûts de chêne</span>
-          </li>
-          <li class="date">
-            <time datetime="2026-12-05">Samedi 5 décembre 2026</time>
-            <span class="date-lieu">Cahors</span>
-            <span class="date-theme">Accords vins &amp; fêtes de fin d'année</span>
-          </li>
-        </ul>
-        <p class="dates-repli">Aucune date ne vous convient&nbsp;? <a href="mailto:simonlaugueux@proton.me?subject=Demande%20de%20d%C3%A9gustation">Organisons la vôtre.</a></p>
-      </div>
-    </section>
+    -->
+    <!-- ===== FIN SECTION FORMULES MASQUÉE ===== -->
 
     <section id="contact" class="section section-contact reveal" aria-labelledby="titre-contact">
       <div class="conteneur">
@@ -178,7 +174,7 @@
             <span class="contact-valeur">simonlaugueux@proton.me</span>
           </a>
         </div>
-        <p class="zone">Zone d'intervention&nbsp;: Cahors, le Lot et alentours.</p>
+        <!-- Zone de déplacement masquée (pas encore décidée) : <p class="zone">Je me déplace à Cahors, dans le Lot et ses alentours.</p> -->
       </div>
     </section>
   </main>

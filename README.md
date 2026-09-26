@@ -20,27 +20,11 @@ Site statique d'une seule page, publié avec GitHub Pages. Aucun outil à instal
 
 ## Modifier le contenu
 
-### Ajouter ou retirer une date
-
-Dans `index.html`, section `id="dates"`, copier un bloc :
-
-```html
-<li class="date">
-  <time datetime="2026-10-17">Samedi 17 octobre 2026</time>
-  <span class="date-lieu">Cahors</span>
-  <span class="date-theme">Le malbec dans tous ses états</span>
-</li>
-```
-
-- `datetime` : la date au format `AAAA-MM-JJ`.
-- Le texte doit commencer par le **bon jour de la semaine** (les tests le vérifient).
-- Pensez à **supprimer les dates passées**.
-- Le texte doit être exactement « Jour N mois AAAA » (par ex. « Samedi 5 décembre 2026 ») : les tests comparent jour, numéro, mois et année avec `datetime`.
-- S'il n'y a plus aucune date, supprimer toute la liste `<ul class="dates-liste"> … </ul>` : la phrase « Aucune date ne vous convient ? Organisons la vôtre. » reste affichée.
-
 ### Modifier une formule ou un tarif
 
-Section `id="formules"` : chaque formule est un bloc `<article class="formule">`. Le prix est dans `<p class="prix">` et doit contenir « à partir de ».
+**Actuellement masquée** : la section formules (et l'encart « De passage dans le Lot ? ») est mise en commentaire dans `index.html`, entre les repères `DÉBUT SECTION FORMULES MASQUÉE` et `FIN SECTION FORMULES MASQUÉE` ; le lien « Formules » du menu est aussi commenté. La marche à suivre pour la réafficher est écrite dans le commentaire.
+
+Section `id="formules"` : chaque formule est un bloc `<article class="formule">`. Le prix est dans `<p class="prix">` et doit contenir « à partir de ». Tant que les tarifs ne sont pas décidés, ils sont affichés « XX € » (les tests refusent un chiffre dans le prix : mettre à jour `test_trois_formules_completes` le jour où les tarifs sont fixés).
 
 ### Changer le téléphone ou l'e-mail
 
@@ -76,8 +60,8 @@ Image de partage (après modification des couleurs) : `python3 tools/og_image.py
 Les éléments suivants sont **provisoires** :
 
 - Textes de présentation (accroche, « L'univers », descriptions des formules).
-- Formules, durées, tailles de groupe et tarifs « à partir de » (35 €/pers., 30 €/pers., 300 € la prestation).
-- Les trois dates d'exemple (17 octobre, 14 novembre, 5 décembre 2026) et leurs lieux.
+- Formules, durées et tailles de groupe. Tarifs non décidés : affichés « XX € ».
+- Bandeau d'annonce en haut de page (`<aside class="annonce">`, « le site sera prêt courant octobre ») : à retirer ou modifier une fois le site finalisé.
 - Absence de photos : les illustrations SVG pourront être remplacées par de vraies photos.
 - Pas de lien WhatsApp pour l'instant.
 
