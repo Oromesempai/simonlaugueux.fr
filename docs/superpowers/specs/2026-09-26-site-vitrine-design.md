@@ -87,11 +87,11 @@ Sur mobile (< 768 px) : barre de contact collée en bas d'écran (Appeler / E-ma
 | `--parchemin` | fond principal | `#F6EFE3` |
 | `--camel` | fonds de sections, cartes | `#C19A6B` |
 | `--ocre` | accents, boutons | `#CC7722` |
-| `--ocre-fonce` | fond bouton si contraste insuffisant | `#A85F16` (ajustable) |
-| `--chene` | texte principal | `#3B2A1E` |
+| `--ocre-fonce` | fond de bouton / carte sous texte clair | `#8F4E0F` |
+| `--chene` | texte principal | `#2A1D14` |
 | `--malbec` | touches rares : filets, survols | `#5A1F2B` |
 
-Règle : le texte est toujours `--chene` sur fond clair, ou `--parchemin` sur fond foncé ; chaque couple texte/fond utilisé est vérifié ≥ 4.5:1.
+Règle : le texte est toujours `--chene` sur fond clair, ou `--parchemin` sur fond foncé ; chaque couple texte/fond utilisé est vérifié ≥ 4.5:1 (par ex. `--chene` sur `--ocre` = 4.85, `--parchemin` sur `--ocre-fonce` = 5.63). Aucune couleur hexadécimale en dur hors `:root`.
 
 ### Typographie (Google Fonts)
 
@@ -117,6 +117,10 @@ assets/css/style.css
 assets/js/main.js        # menu burger + apparition au scroll
 assets/img/              # SVG (icônes, texture, séparateurs), favicon, image Open Graph
 CNAME                    # simonlaugueux.fr
+.nojekyll                # sert les fichiers tels quels (pas de traitement Jekyll)
+.htmlvalidate.json       # config du validateur HTML (utilisé via npx, pas installé)
+tests/                   # vérifications stdlib Python + test Node du JS
+tools/og_image.py        # génère l'image Open Graph (stdlib Python)
 README.md                # modifier dates/tarifs, contenu à valider, DNS GitHub Pages
 docs/superpowers/specs/  # cette spec
 ```
